@@ -1,5 +1,6 @@
 import { IconSparkles as Sparkles, IconX as X } from "@tabler/icons-react";
 import type { Vehiculo } from "@/services/api/vehiculos";
+import type { Parqueadero } from "@/services/api/parqueaderos";
 import type { Usuario } from "@/services/api/usuarios";
 import type { Celda } from "@/services/api/celdas";
 import type { TipoNovedad, PrioridadNovedad, Incidente, ClaseNovedad } from "@/services/api/incidentes";
@@ -49,9 +50,10 @@ interface IncidenteFormModalProps {
   showJustificacionCierre: boolean;
   formData: IncidenteFormData;
   setFormData: (updater: (f: IncidenteFormData) => IncidenteFormData) => void;
-  formTouched: { descripcion?: boolean };
-  formErrors: { descripcion: string; vehiculoId: string };
+  formTouched: { descripcion?: boolean; parqueaderoId?: boolean };
+  formErrors: { descripcion: string; parqueaderoId: string; vehiculoId: string };
   formInvalido: boolean;
+  parqueaderos: Parqueadero[];
   vehiculos: Vehiculo[];
   usuarios: Usuario[];
   /** false para el flujo de Comunidad SENA (solo reporta): oculta prioridad y "Asignar a" —
@@ -64,6 +66,8 @@ interface IncidenteFormModalProps {
   ocupanteDeCelda: (celdaId?: string) => { vehiculo: { placa: string } } | null;
   onCeldaChange: (value: string) => void;
   onVehiculoChange: (value: string) => void;
+  onParqueaderoChange: (value: string) => void;
+  ocultarParqueadero?: boolean;
   onClose: () => void;
   onSave: () => void;
 }
@@ -73,8 +77,8 @@ export function IncidenteFormModal({
   isEditing, usuariosReportantes, puedeRegistrarNovedades,
   evidencias, onEvidenciasChange, evidenciasExistentes, showJustificacionCierre,
   formData, setFormData, formTouched, formErrors, formInvalido, markTouched,
-  vehiculos, usuarios, puedeClasificar = true, celdasDelParqueadero, permitirSinCelda = true, celdaSeleccionada, ocupanteSeleccionado, ocupanteDeCelda,
-  onCeldaChange, onVehiculoChange, onClose, onSave,
+  parqueaderos, vehiculos, usuarios, puedeClasificar = true, celdasDelParqueadero, permitirSinCelda = true, celdaSeleccionada, ocupanteSeleccionado, ocupanteDeCelda,
+  onCeldaChange, onVehiculoChange, onParqueaderoChange, ocultarParqueadero = false, onClose, onSave,
 }: IncidenteFormModalProps) {
   return (
     <div>
@@ -157,13 +161,19 @@ export function IncidenteFormModal({
 
           <IncidenteBasicFields
             descripcion={formData.descripcion}
+            parqueaderoId={formData.parqueaderoId}
             celdaId={formData.celdaId}
+            parqueaderos={parqueaderos}
             celdasDelParqueadero={celdasDelParqueadero}
             celdaSeleccionada={celdaSeleccionada}
             ocupanteSeleccionado={ocupanteSeleccionado}
             descripcionError={formTouched.descripcion ? formErrors.descripcion : undefined}
+            parqueaderoError={formTouched.parqueaderoId ? formErrors.parqueaderoId : undefined}
+            ocultarParqueadero={ocultarParqueadero}
             onDescripcionChange={(value) => setFormData((f) => ({ ...f, descripcion: value }))}
             onDescripcionBlur={() => markTouched("descripcion")}
+            onParqueaderoChange={onParqueaderoChange}
+            onParqueaderoBlur={() => markTouched("parqueaderoId")}
             onCeldaChange={onCeldaChange}
             ocupanteDeCelda={ocupanteDeCelda}
             permitirSinCelda={permitirSinCelda}
@@ -181,7 +191,7 @@ export function IncidenteFormModal({
 
           <IncidenteVehiculoAsignadoFields
             vehiculoId={formData.vehiculoId}
-            vehiculoError={formData.clase !== "novedad" && formTouched.descripcion ? formErrors.vehiculoId : undefined}
+            vehiculoError={ocultarParqueadero && formData.clase !== "novedad" && formTouched.descripcion ? formErrors.vehiculoId : undefined}
             usuarioAsignadoId={formData.usuarioAsignadoId}
             tipoNovedad={formData.tipoNovedad}
             tipoOtro={formData.tipoOtro}
