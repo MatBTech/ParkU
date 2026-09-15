@@ -74,7 +74,7 @@ export function useIncidenteDialogs(data: IncidentesData, options?: { celdaIdsPe
   const modoConductor = options?.modoConductor ?? false;
   const formErrors = {
     descripcion: formData.descripcion.trim() ? "" : "La descripción es obligatoria",
-    parqueaderoId: formData.parqueaderoId ? "" : "Selecciona un parqueadero",
+    parqueaderoId: modoConductor || formData.parqueaderoId ? "" : "Selecciona un parqueadero",
     vehiculoId: !modoConductor || esNovedad || formData.vehiculoId ? "" : "Selecciona el vehículo implicado",
     tipoNovedad: esNovedad || formData.tipoNovedad ? "" : "Elige el tipo de incidente",
     tipoOtro: !esNovedad && formData.tipoNovedad === "otro" && !formData.tipoOtro.trim()
@@ -209,6 +209,9 @@ export function useIncidenteDialogs(data: IncidentesData, options?: { celdaIdsPe
     }
 
     try {
+      const datosParaGuardar = modoConductor
+        ? { ...formData, prioridad: "", usuarioAsignadoId: "" }
+        : formData;
       /* Las fotos se suben con el reporte ya existente, que es cuando hay un id al que
          colgarlas. Si alguna falla, lo demás ya quedó guardado: se avisa de lo que no subió
          en vez de dar todo por perdido. Una novedad no lleva fotos. */
@@ -221,11 +224,11 @@ export function useIncidenteDialogs(data: IncidentesData, options?: { celdaIdsPe
       };
 
       if (isEditing && selectedIncidente) {
-        await updateIncidente(selectedIncidente.id, { ...formData });
+        await updateIncidente(selectedIncidente.id, { ...datosParaGuardar } as Partial<Incidente>);
         const aviso = await subirFotos(selectedIncidente.id);
         toast.success("Incidente actualizado correctamente" + aviso);
       } else {
-        const creado = await addIncidente({ ...formData });
+        const creado = await addIncidente({ ...datosParaGuardar } as Omit<Incidente, "id" | "fecha">);
         const aviso = creado?.id ? await subirFotos(creado.id) : "";
         toast.success("Incidente registrado correctamente" + aviso);
       }
