@@ -6,12 +6,10 @@ import {
   IconCircleCheck as CheckCircle,
   IconClock as Clock,
   IconEdit as Edit,
-  IconFile as FileIcon,
   IconMapPin as MapPin,
   IconCircleLetterP as ParkingCircle,
   IconUser as User,
   IconUserPlus as UserPlus,
-  IconX as X,
 } from "@tabler/icons-react";
 import type { Incidente } from "@/services/api/incidentes";
 import type { Celda } from "@/services/api/celdas";
@@ -22,9 +20,9 @@ import {
   TIPO_NOVEDAD_LABEL,
 } from "../lib/constants";
 import type { Evidencia } from "@/services/api/evidencias";
+import { EvidenciaGallery } from "./EvidenciasField";
 
 const C = theme;
-const API_BASE = (import.meta as any).env?.VITE_API_URL ?? "";
 
 interface IncidenteViewModalProps {
   incidente: Incidente;
@@ -41,170 +39,6 @@ interface IncidenteViewModalProps {
   nombreParqueadero: string;
   onClose: () => void;
   onEdit: () => void;
-}
-
-/** Extrae la URL de una evidencia sin depender del nombre exacto del campo en el modelo. */
-function evidenciaUrl(ev: Evidencia): string {
-  const e = ev as unknown as Record<string, unknown>;
-  const v = e.url ?? e.archivoUrl ?? e.archivo ?? e.src ?? e.path ?? "";
-  if (typeof v !== "string" || !v.trim()) return "";
-  const url = v.trim();
-  if (/^(https?:|data:|blob:)/i.test(url)) return url;
-  return url.startsWith("/") ? `${API_BASE}${url}` : `${API_BASE}/${url}`;
-}
-
-/** Nombre legible de la evidencia, con fallback numerado. */
-function evidenciaNombre(ev: Evidencia, i: number): string {
-  const e = ev as unknown as Record<string, unknown>;
-  const v = e.nombre ?? e.nombreArchivo ?? e.name ?? "";
-  return typeof v === "string" && v.trim() ? v : `Evidencia ${i + 1}`;
-}
-
-/** Heurística para saber si la URL apunta a una imagen (o data URL de imagen). */
-function esImagen(url: string): boolean {
-  if (!url) return false;
-  // El endpoint de evidencias solo acepta imágenes, pero la URL puede ser una ruta
-  // sin extensión (por ejemplo, un recurso servido por el storage del backend).
-  return true;
-}
-
-/** Galería de evidencias: thumbnails cuadradas, con lightbox al hacer clic. */
-function EvidenciaGallery({ evidencias }: { evidencias: Evidencia[] }) {
-  const [preview, setPreview] = useState<{
-    url: string;
-    nombre: string;
-  } | null>(null);
-
-  return (
-    <>
-      <div
-        style={{
-          display: "grid",
-          gridTemplateColumns: "repeat(auto-fill, minmax(104px, 1fr))",
-          gap: 8,
-        }}
-      >
-        {evidencias.map((ev, i) => {
-          const url = evidenciaUrl(ev);
-          const nombre = evidenciaNombre(ev, i);
-          const esImg = esImagen(url);
-          const clickable = esImg && url;
-
-          return (
-            <button
-              key={i}
-              type="button"
-              onClick={() => clickable && setPreview({ url, nombre })}
-              title={nombre}
-              aria-label={`Ver ${nombre}`}
-              style={{
-                position: "relative",
-                aspectRatio: "1 / 1",
-                width: "100%",
-                borderRadius: 10,
-                overflow: "hidden",
-                border: `1px solid ${C.border}`,
-                background: C.surfaceSubtle,
-                padding: 0,
-                cursor: clickable ? "zoom-in" : "default",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-              }}
-            >
-              {esImg ? (
-                <img
-                  src={url}
-                  alt={nombre}
-                  loading="lazy"
-                  style={{
-                    width: "100%",
-                    height: "100%",
-                    objectFit: "cover",
-                    display: "block",
-                  }}
-                />
-              ) : (
-                <div
-                  style={{
-                    display: "flex",
-                    flexDirection: "column",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    gap: 6,
-                    padding: 10,
-                    color: C.textLight,
-                    fontSize: 10,
-                    textAlign: "center",
-                    lineHeight: 1.2,
-                  }}
-                >
-                  <FileIcon size={22} />
-                  <span style={{ wordBreak: "break-word", maxWidth: "100%" }}>
-                    {nombre}
-                  </span>
-                </div>
-              )}
-            </button>
-          );
-        })}
-      </div>
-
-      {preview && (
-        <div
-          onClick={() => setPreview(null)}
-          role="dialog"
-          aria-label={preview.nombre}
-          style={{
-            position: "fixed",
-            inset: 0,
-            zIndex: 9999,
-            background: "rgba(15,23,42,.88)",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            padding: 24,
-            cursor: "zoom-out",
-          }}
-        >
-          <img
-            src={preview.url}
-            alt={preview.nombre}
-            onClick={(e) => e.stopPropagation()}
-            style={{
-              maxWidth: "92vw",
-              maxHeight: "88vh",
-              borderRadius: 12,
-              boxShadow: "0 24px 64px rgba(0,0,0,.55)",
-              cursor: "default",
-            }}
-          />
-          <button
-            type="button"
-            onClick={() => setPreview(null)}
-            aria-label="Cerrar vista previa"
-            style={{
-              position: "absolute",
-              top: 16,
-              right: 16,
-              width: 36,
-              height: 36,
-              borderRadius: 10,
-              background: "rgba(255,255,255,.15)",
-              border: "none",
-              color: "#fff",
-              cursor: "pointer",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-            }}
-          >
-            <X size={16} />
-          </button>
-        </div>
-      )}
-    </>
-  );
 }
 
 /** Fila de dato en la ficha. Compacta, con o sin acción de navegación. */

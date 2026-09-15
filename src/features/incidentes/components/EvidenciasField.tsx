@@ -12,7 +12,9 @@ import { theme } from "@/styles/theme";
 
 import {
   MAX_EVIDENCIAS,
+  cargarEvidencia,
   motivoArchivoInvalido,
+  resolverUrlEvidencia,
   type Evidencia,
 } from "@/services/api/evidencias";
 
@@ -26,25 +28,6 @@ const C = theme;
  *
  * Sin barra final.
  */
-const API_BASE = (import.meta as any).env?.VITE_API_URL ?? "";
-
-/**
- * Resuelve URLs relativas y absolutas de evidencias.
- */
-function resolverUrl(url: string): string {
-  if (!url) return "";
-
-  if (/^(https?:|data:|blob:)/i.test(url)) {
-    return url;
-  }
-
-  if (url.startsWith("/")) {
-    return `${API_BASE}${url}`;
-  }
-
-  return `${API_BASE}/${url}`;
-}
-
 /**
  * Nombre visible:
  * descripción si existe, si no "Evidencia N".
@@ -87,9 +70,28 @@ function useEvidenciaSrc(url: string): {
       return;
     }
 
-    setSrc(url);
-    setCargando(false);
-    setError(false);
+    let cancelado = false;
+    let blobUrl = "";
+    setCargando(true);
+    cargarEvidencia(url)
+      .then((cargada) => {
+        if (cancelado) return;
+        blobUrl = cargada;
+        setSrc(cargada);
+        setCargando(false);
+        setError(false);
+      })
+      .catch(() => {
+        if (cancelado) return;
+        setSrc(null);
+        setCargando(false);
+        setError(true);
+      });
+
+    return () => {
+      cancelado = true;
+      if (blobUrl.startsWith("blob:")) URL.revokeObjectURL(blobUrl);
+    };
   }, [url]);
 
   return {
@@ -528,7 +530,7 @@ function EvidenciaThumb({
     (evidencia.url ?? "").trim();
 
   const url =
-    resolverUrl(urlOriginal);
+    resolverUrlEvidencia(urlOriginal);
 
   const nombre =
     nombreDe(evidencia, indice);
