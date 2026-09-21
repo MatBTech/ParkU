@@ -39,6 +39,9 @@ export interface PermisosRol {
   usuarios: boolean;
   conductores: boolean;
   vehiculos: boolean;
+  /** Autoservicio: "Mis Vehículos" (ver/crear/editar SUS PROPIOS vehículos). Distinto de
+   *  `vehiculos`, que es la gestión administrativa de la flota de TODOS los conductores. */
+  misVehiculos: boolean;
   parqueaderos: boolean;
   celdas: boolean;
   asignaciones: boolean;
@@ -54,6 +57,7 @@ const TODO_PERMITIDO: PermisosRol = {
   usuarios: true,
   conductores: true,
   vehiculos: true,
+  misVehiculos: true,
   parqueaderos: true,
   celdas: true,
   asignaciones: true,
@@ -71,6 +75,7 @@ export const PERMISOS_POR_ROL: Record<RolId, PermisosRol> = {
     usuarios: false,
     conductores: true,
     vehiculos: true,
+    misVehiculos: false,
     parqueaderos: true,
     celdas: true,
     asignaciones: true,
@@ -85,6 +90,9 @@ export const PERMISOS_POR_ROL: Record<RolId, PermisosRol> = {
     usuarios: false,
     conductores: false,
     vehiculos: false,
+    // Autoservicio de sus propios vehículos (crear, ver, editar si es principal) — no
+    // confundir con `vehiculos`, que es la gestión admin de la flota completa.
+    misVehiculos: true,
     // Solo lectura del mapa/disponibilidad de celdas + reservar una: ve la sección de
     // Parqueaderos, pero sin `celdas`/`asignaciones` no puede crear/editar parqueaderos ni
     // usar asignación inteligente. Sí puede abrir la pantalla de Entrada/Salida porque ese
@@ -107,6 +115,7 @@ export const PERMISOS_VACIOS: PermisosRol = {
   usuarios: false,
   conductores: false,
   vehiculos: false,
+  misVehiculos: false,
   parqueaderos: false,
   celdas: false,
   asignaciones: false,

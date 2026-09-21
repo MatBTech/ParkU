@@ -49,6 +49,7 @@ const ControlSalidaPage = lazyConReintento(() => import('@/features/controlSalid
 const Reservas = lazyConReintento(() => import('@/features/reservas').then(m => ({ default: m.Reservas })));
 const Incidentes = lazyConReintento(() => import('@/features/incidentes').then(m => ({ default: m.Incidentes })));
 const Perfil = lazyConReintento(() => import('@/features/perfil').then(m => ({ default: m.Perfil })));
+const MisVehiculos = lazyConReintento(() => import('@/features/misVehiculos').then(m => ({ default: m.MisVehiculos })));
 
 export const router = createBrowserRouter([
   {
@@ -132,6 +133,14 @@ export const router = createBrowserRouter([
         element: (
           <ProtectedRoute permission="parqueaderos">
             <Parqueaderos />
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: 'mis-vehiculos',
+        element: (
+          <ProtectedRoute permission="misVehiculos">
+            <MisVehiculos />
           </ProtectedRoute>
         ),
       },

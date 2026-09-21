@@ -3,10 +3,14 @@ import { CELDA_CONFIG } from "../lib/helpers";
 
 interface ParqueaderosHeroProps {
   stats: { libres: number; ocupadas: number; mantenimiento: number };
+  /** true para quien solo puede ver/usar celdas disponibles (Conductor): las pastillas de
+   *  "Ocupadas" y "En mantenimiento" no le aportan nada (siempre valdrían 0, porque ya no ve
+   *  esas celdas) y solo se le muestra el conteo de Disponibles. */
+  soloDisponibles?: boolean;
 }
 
 /** Banner superior de la página de Parqueaderos con las pastillas resumidas. */
-export function ParqueaderosHero({ stats }: ParqueaderosHeroProps) {
+export function ParqueaderosHero({ stats, soloDisponibles }: ParqueaderosHeroProps) {
   return (
     <div
       style={{
@@ -80,16 +84,20 @@ export function ParqueaderosHero({ stats }: ParqueaderosHeroProps) {
               value: stats.libres,
               dot: CELDA_CONFIG.disponible.dotColor,
             },
-            {
-              label: "Ocupadas",
-              value: stats.ocupadas,
-              dot: CELDA_CONFIG.no_disponible.dotColor,
-            },
-            {
-              label: "En mantenimiento",
-              value: stats.mantenimiento,
-              dot: CELDA_CONFIG.mantenimiento.dotColor,
-            },
+            ...(soloDisponibles
+              ? []
+              : [
+                  {
+                    label: "Ocupadas",
+                    value: stats.ocupadas,
+                    dot: CELDA_CONFIG.no_disponible.dotColor,
+                  },
+                  {
+                    label: "En mantenimiento",
+                    value: stats.mantenimiento,
+                    dot: CELDA_CONFIG.mantenimiento.dotColor,
+                  },
+                ]),
           ].map((s) => (
             <div
               key={s.label}

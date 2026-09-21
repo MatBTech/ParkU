@@ -3,8 +3,18 @@ import { useSearchParams } from "react-router-dom";
 import type { Celda } from "@/services/api/celdas";
 import type { ParqueaderosData } from "./useParqueaderosData";
 
+interface ParqueaderosFiltersOptions {
+  /** true para quien solo debe ver celdas disponibles (Conductor): un parqueadero sin
+   *  ninguna celda disponible en este momento no se lista, en vez de mostrarse vacío. */
+  soloConCeldas?: boolean;
+}
+
 /** Pestaña activa, búsqueda/filtro de tipo, listas filtradas y estadísticas de ocupación. */
-export function useParqueaderosFilters(data: ParqueaderosData, getOcupante: (celdaId: string) => { vehiculo: { placa: string }; conductor?: { nombre: string } } | null) {
+export function useParqueaderosFilters(
+  data: ParqueaderosData,
+  getOcupante: (celdaId: string) => { vehiculo: { placa: string }; conductor?: { nombre: string } } | null,
+  options?: ParqueaderosFiltersOptions
+) {
   const { parqueaderos, celdas, incidentes } = data;
   const [searchParams] = useSearchParams();
   const [activeTab, setActiveTab] = useState<"map" | "table">("table");
@@ -48,8 +58,11 @@ export function useParqueaderosFilters(data: ParqueaderosData, getOcupante: (cel
     });
   }, [celdas, search, getOcupante]);
   const filteredPqsConCeldas = useMemo(
-    () => filteredPqs.filter((pq) => filteredCeldas.some((c) => c.parqueaderoId === pq.id) || !search.trim()),
-    [filteredPqs, filteredCeldas, search]
+    () =>
+      filteredPqs.filter(
+        (pq) => filteredCeldas.some((c) => c.parqueaderoId === pq.id) || (!search.trim() && !options?.soloConCeldas)
+      ),
+    [filteredPqs, filteredCeldas, search, options?.soloConCeldas]
   );
 
   const activeFilters = [search, filterTipo !== "Todos" ? filterTipo : ""].filter(Boolean).length;

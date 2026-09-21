@@ -30,6 +30,7 @@ export default function Parqueaderos() {
     navigate,
     hasPermission,
     data,
+    celdasVisibles,
     modal,
     filters,
     pqFormState,
@@ -79,7 +80,7 @@ export default function Parqueaderos() {
         className="pq-root"
         style={{ display: "flex", flexDirection: "column", gap: 16 }}
       >
-        <ParqueaderosHero stats={filters.stats} />
+        <ParqueaderosHero stats={filters.stats} soloDisponibles={!hasPermission("celdas")} />
 
         <ParqueaderosTopbar
           search={filters.search}
@@ -109,7 +110,7 @@ export default function Parqueaderos() {
               <ParqueaderosTable
                 parqueaderos={filters.filteredPqsConCeldas}
                 celdas={
-                  filters.search.trim() ? filters.filteredCeldas : data.celdas
+                  filters.search.trim() ? filters.filteredCeldas : celdasVisibles
                 }
                 getOcupante={modal.getOcupante}
                 onEdit={pqFormState.openEdit}
@@ -134,7 +135,7 @@ export default function Parqueaderos() {
             {filters.activeTab === "map" && (
               <ParkingMap
                 parqueaderos={filters.filteredPqsConCeldas}
-                celdas={data.celdas}
+                celdas={celdasVisibles}
                 getOcupante={modal.getOcupante}
                 onCellClick={handleCellClick}
                 cellMatchesSearch={filters.cellMatchesSearch}
