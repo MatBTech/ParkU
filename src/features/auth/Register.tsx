@@ -23,14 +23,17 @@ export function Register() {
 
       <div
         style={{
-          minHeight: "100vh",
+          // Alto fijo al viewport (no mínimo): así el contenedor nunca crece más allá de la
+          // pantalla y no aparece scroll en la vista, aunque el contenido de la tarjeta sea
+          // más alto -- el `overflow: hidden` de aquí es el que lo recorta, no el formulario.
+          height: "100dvh",
           background: "linear-gradient(180deg, #ffffff 0%, #F3F8F1 100%)",
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
           padding: "1.2rem",
           position: "relative",
-          overflowX: "hidden",
+          overflow: "hidden",
         }}
       >
         <div
@@ -51,6 +54,9 @@ export function Register() {
           style={{
             width: "100%",
             maxWidth: 900,
+            // Nunca más alta que el espacio disponible dentro del contenedor (100dvh menos su
+            // padding): así la tarjeta se ajusta sola en vez de forzar scroll en la vista.
+            maxHeight: "calc(100dvh - 2.4rem)",
             display: "grid",
             gridTemplateColumns: "0.85fr 1.15fr",
             overflow: "hidden",
