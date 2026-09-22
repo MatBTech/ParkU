@@ -54,9 +54,11 @@ export function Register() {
           style={{
             width: "100%",
             maxWidth: 900,
-            // Nunca más alta que el espacio disponible dentro del contenedor (100dvh menos su
-            // padding): así la tarjeta se ajusta sola en vez de forzar scroll en la vista.
-            maxHeight: "calc(100dvh - 2.4rem)",
+            // Alto FIJO (no máximo) al espacio disponible: le da a la fila del grid un alto
+            // definido, para que la columna del formulario pueda resolver su `height: 100%` y
+            // scrollear internamente cuando su contenido no quepa -- con `maxHeight` a secas el
+            // navegador no tiene un alto de fila concreto contra el cual calcular ese 100%.
+            height: "calc(100dvh - 2.4rem)",
             display: "grid",
             gridTemplateColumns: "0.85fr 1.15fr",
             overflow: "hidden",
@@ -70,7 +72,19 @@ export function Register() {
         >
           <RegisterLeftPanel />
 
-          <div style={{ padding: "2rem clamp(1.5rem, 3vw, 2.5rem)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+          <div
+            style={{
+              height: "100%",
+              // Único elemento con scroll de las pantallas de auth: la vista (el contenedor de
+              // arriba) nunca se mueve, solo esta columna cuando el formulario no cabe entero
+              // (el de Register es largo, ahora con los campos del vehículo es aún más largo).
+              overflowY: "auto",
+              padding: "2rem clamp(1.5rem, 3vw, 2.5rem)",
+              display: "flex",
+              alignItems: "safe center",
+              justifyContent: "center",
+            }}
+          >
             <RegisterForm identificacionRef={primerCampoRef} formState={formState} />
           </div>
         </div>

@@ -48,9 +48,11 @@ export function Login() {
           style={{
             width: "100%",
             maxWidth: 820,
-            // Nunca más alto que el espacio disponible dentro del contenedor (100dvh menos su
-            // padding): así la tarjeta se ajusta sola en vez de forzar scroll en la vista.
-            maxHeight: "calc(100dvh - 2.4rem)",
+            // Alto FIJO (no máximo) al espacio disponible: le da a la fila del grid un alto
+            // definido, para que la columna del formulario pueda resolver su `height: 100%` y
+            // scrollear internamente cuando su contenido no quepa -- con `maxHeight` a secas el
+            // navegador no tiene un alto de fila concreto contra el cual calcular ese 100%.
+            height: "calc(100dvh - 2.4rem)",
             display: "grid",
             gridTemplateColumns: "1fr 1fr",
             overflow: "hidden",
@@ -64,7 +66,21 @@ export function Login() {
         >
           <LoginLeftPanel />
 
-          <div style={{ padding: "2rem clamp(1.5rem, 3vw, 2.5rem)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+          <div
+            style={{
+              height: "100%",
+              // Único elemento con scroll de las pantallas de auth: la vista (el contenedor de
+              // arriba) nunca se mueve, solo esta columna cuando el formulario no cabe entero.
+              overflowY: "auto",
+              padding: "2rem clamp(1.5rem, 3vw, 2.5rem)",
+              display: "flex",
+              // "safe center": centra si cabe, pero si el formulario es más alto que la
+              // columna, se alinea arriba en vez del bug clásico de flexbox donde el inicio
+              // del contenido queda inalcanzable al hacer scroll con `center` a secas.
+              alignItems: "safe center",
+              justifyContent: "center",
+            }}
+          >
             <LoginForm formState={formState} />
           </div>
         </div>

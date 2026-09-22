@@ -1,22 +1,31 @@
-import { IconCar as Car, IconPlus as Plus, IconCrown as Crown, IconUsers as Users } from "@tabler/icons-react";
+import { IconCar as Car, IconPlus as Plus } from "@tabler/icons-react";
 import { theme } from "@/styles/theme";
 import { Modal, LoadingState } from "@/components/shared";
+import { DataGrid, DataList, DataToolbar } from "@/components/data";
 import { VehiculoView } from "@/features/conductores/components/VehiculoView";
 import { VehiculoFormModal } from "@/features/conductores/components/VehiculoFormModal";
-import { getTipoVehiculoStyle } from "@/features/conductores/lib/helpers";
 import { CrearMiVehiculoModal } from "./components/CrearMiVehiculoModal";
+import { renderVehiculoCard, getVehiculoColumns, type VehiculoCardHandlers } from "./components/VehiculoCard";
 import { useMisVehiculosPage } from "./hooks/useMisVehiculosPage";
 
 const C = theme;
 
 export function MisVehiculos() {
   const {
-    isLoading, miConductor, misVehiculos, esPrincipal, crear,
+    isLoading, miConductor, misVehiculos, misVehiculosFiltrados, esPrincipal,
+    viewMode, setViewMode, search, setSearch,
+    crear,
     viewing, openView, closeView,
     editando, form, setForm, touched, markTouched, erroresEdicion, abrirEditar, cerrarEditar, guardarEdicion,
   } = useMisVehiculosPage();
 
   if (isLoading) return <LoadingState message="Cargando tus vehículos..." />;
+
+  const handlers: VehiculoCardHandlers = {
+    esPrincipal: (v) => !!miConductor && esPrincipal(v, miConductor.id),
+    onView: openView,
+    onEdit: abrirEditar,
+  };
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
@@ -41,19 +50,6 @@ export function MisVehiculos() {
             Registra y consulta los vehículos vinculados a tu cuenta.
           </p>
         </div>
-        {miConductor && (
-          <button
-            type="button"
-            onClick={crear.abrir}
-            style={{
-              display: "flex", alignItems: "center", gap: 8, padding: "10px 18px", borderRadius: 12,
-              border: "none", background: "#fff", color: C.primaryDark, fontSize: 13, fontWeight: 800,
-              cursor: "pointer", fontFamily: "inherit",
-            }}
-          >
-            <Plus size={16} /> Registrar vehículo
-          </button>
-        )}
       </div>
 
       {!miConductor && (
@@ -92,76 +88,36 @@ export function MisVehiculos() {
         </div>
       )}
 
-      {misVehiculos.length > 0 && (
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill,minmax(240px,1fr))", gap: 14 }}>
-          {misVehiculos.map((v) => {
-            const tipoStyle = getTipoVehiculoStyle(v.tipo);
-            const TipoIcon = tipoStyle.icon;
-            const soyPrincipal = miConductor ? esPrincipal(v, miConductor.id) : false;
-            return (
-              <div
-                key={v.id}
-                style={{
-                  border: `1px solid ${C.border}`, borderRadius: 16, padding: "1.1rem",
-                  display: "flex", flexDirection: "column", gap: 10, background: "#fff",
-                }}
-              >
-                <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                  <div
-                    style={{
-                      width: 38, height: 38, borderRadius: 10, background: tipoStyle.bg,
-                      display: "flex", alignItems: "center", justifyContent: "center",
-                    }}
-                  >
-                    <TipoIcon size={18} color={tipoStyle.dot} />
-                  </div>
-                  <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ fontSize: 15, fontWeight: 900, color: C.text }}>{v.placa}</div>
-                    <div style={{ fontSize: 11, color: C.textLight }}>{v.marca} {v.linea}</div>
-                  </div>
-                </div>
+      {miConductor && misVehiculos.length > 0 && (
+        <>
+          <DataToolbar
+            search={search}
+            onSearchChange={setSearch}
+            searchPlaceholder="Buscar por placa, marca o línea..."
+            searchAriaLabel="Buscar en mis vehículos"
+            filters={[]}
+            viewMode={viewMode}
+            onViewModeChange={setViewMode}
+            createLabel="Registrar vehículo"
+            onCreate={crear.abrir}
+          />
 
-                <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                  {soyPrincipal ? (
-                    <span style={{ display: "flex", alignItems: "center", gap: 4, fontSize: 10, fontWeight: 800, color: tipoStyle.text, background: tipoStyle.bg, padding: "3px 9px", borderRadius: 999 }}>
-                      <Crown size={11} /> Propietario
-                    </span>
-                  ) : (
-                    <span style={{ display: "flex", alignItems: "center", gap: 4, fontSize: 10, fontWeight: 800, color: C.textLight, background: C.surfaceSubtle, padding: "3px 9px", borderRadius: 999 }}>
-                      <Users size={11} /> Copropietario
-                    </span>
-                  )}
-                </div>
-
-                <div style={{ display: "flex", gap: 8, marginTop: "auto" }}>
-                  <button
-                    type="button"
-                    onClick={() => openView(v)}
-                    style={{
-                      flex: 1, padding: "9px 12px", borderRadius: 10, border: `1px solid ${C.border}`,
-                      background: "#fff", color: C.text, fontSize: 12, fontWeight: 700, cursor: "pointer", fontFamily: "inherit",
-                    }}
-                  >
-                    Ver detalle
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => abrirEditar(v)}
-                    disabled={!soyPrincipal}
-                    title={soyPrincipal ? undefined : "Solo el propietario principal puede editar"}
-                    style={{
-                      flex: 1, padding: "9px 12px", borderRadius: 10, border: "none",
-                      background: soyPrincipal ? C.primary : C.textMuted, color: "#fff", fontSize: 12, fontWeight: 700,
-                      cursor: soyPrincipal ? "pointer" : "not-allowed", fontFamily: "inherit", opacity: soyPrincipal ? 1 : 0.6,
-                    }}
-                  >
-                    Editar
-                  </button>
-                </div>
-              </div>
-            );
-          })}
-        </div>
+          {viewMode === "grid" ? (
+            <DataGrid
+              items={misVehiculosFiltrados}
+              getKey={(v) => v.id}
+              gridTemplateColumns="repeat(auto-fill,minmax(240px,1fr))"
+              gap={14}
+              renderCard={(v) => renderVehiculoCard(v, handlers)}
+            />
+          ) : (
+            <DataList
+              items={misVehiculosFiltrados}
+              getKey={(v) => v.id}
+              columns={getVehiculoColumns(handlers)}
+            />
+          )}
+        </>
       )}
 
       <Modal open={crear.open} onClose={() => crear.setOpen(false)} maxWidth={480} title="Registrar mi vehículo">

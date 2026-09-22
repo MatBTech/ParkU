@@ -31,6 +31,17 @@ export function useMisVehiculosPage() {
     [data.vehiculos, miConductor]
   );
 
+  // ----- vista (cuadrícula / lista) + búsqueda -----
+  const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
+  const [search, setSearch] = useState("");
+  const misVehiculosFiltrados = useMemo(() => {
+    const q = search.trim().toLowerCase();
+    if (!q) return misVehiculos;
+    return misVehiculos.filter(
+      (v) => v.placa.toLowerCase().includes(q) || v.marca.toLowerCase().includes(q) || (v.linea ?? "").toLowerCase().includes(q)
+    );
+  }, [misVehiculos, search]);
+
   // ----- crear / vincular como copropietario -----
   const crear = useCrearMiVehiculo(data, miConductor);
 
@@ -118,7 +129,8 @@ export function useMisVehiculosPage() {
 
   return {
     isLoading: data.isLoading,
-    miConductor, misVehiculos, esPrincipal,
+    miConductor, misVehiculos, misVehiculosFiltrados, esPrincipal,
+    viewMode, setViewMode, search, setSearch,
     crear,
     viewing, openView, closeView,
     editando, form, setForm, touched, markTouched, erroresEdicion, abrirEditar, cerrarEditar, guardarEdicion,
